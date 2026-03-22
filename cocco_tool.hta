@@ -1,0 +1,907 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<HTA:APPLICATION 
+		ID="CoccoMsgNet2"
+		APPLICATIONNAME="msg_display_net2"
+		sysmenu="yes"
+		contextmenu="no"
+		icon = "http://cocco.privatemoon.jp/favicon.ico"
+		minimizeButton="yes"
+		maximizeButton ="no"
+		singleinstance="yes"
+		border="thin"
+		innerBorder="no"
+		style="raised"
+		version="1"
+		caption="yes"
+		scroll="no"
+>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=7" />
+	<title>こっこAI 総合ツール</title>
+	<link rel="stylesheet" type="text/css" href="cocco_tool.css">
+	<script type="text/javascript" src="cocco_tool.js"></script>
+</head>
+<body onload="tooltip.init();">
+	<div id="menu">
+		<ul>
+			<li><label title="メッセージモニタ"><img src="http://lh3.ggpht.com/_8Hzx_QBHnQA/TBJ2_v67piI/AAAAAAAAAEc/2LMqJRP2Ieo/s128/message.png" width="24" height="24" id="message-icon" class="on" onclick="menuTab('message');blur();" /></label></li>
+			<li><label title="設定エディタ"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ3cnpeKmI/AAAAAAAAAFI/uZMAh706SPg/s128/setting.png" width="24" height="24" id="setting-icon" onclick="menuTab('setting');blur();" /></label></li>
+			<li><label title="Mob設定エディタ"><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TBJ3JT3sGtI/AAAAAAAAAEg/A-X9_Owjc3s/s128/mobdata.png" width="24" height="24" id="mobdata-icon" onclick="menuTab('mobdata');blur();" /></label></li>
+			<li><label title="友達リストエディタ"><img src="http://lh6.ggpht.com/_8Hzx_QBHnQA/TBJ4B8iRX9I/AAAAAAAAAFo/BYCURw7UfA0/s128/friend.png" width="24" height="24" id="friend-icon" onclick="menuTab('friend');blur();" /></label></li>
+			<li><label title="インフォメーション/バックアップ"><img src="http://lh3.ggpht.com/_8Hzx_QBHnQA/TBJ2_JBWr3I/AAAAAAAAAEQ/8SA9w6RWnIk/s128/info.png" width="24" height="24" id="info-icon" onclick="menuTab('info');blur();" /></label></li>
+		</ul>
+	</div>
+	<div id="main">
+<!-- メッセージモニタのHTML -->
+		<div id="message">
+			<table>
+				<tr><td>
+					<div id="mob-name">
+						<img src="http://lh6.ggpht.com/_8Hzx_QBHnQA/TBOPKfXV0TI/AAAAAAAAAGM/JF3YMfVkDr0/book.png" width="16" height="16" class="mini-icon" /><span id="mdata_name">--</span>
+					</div>
+					<label id="mdata" title="敵パラメータ/予想ダメージ計算表示切替" style="display:block;">
+						<div onclick="DataSwitch();">
+							Lv : <span id="mdata_lv">--</span>　
+							HP : <span id="mdata_hp">--</span>　
+							Type : <span id="mdata_type">--/--/--</span>　
+							<br />
+							<span id="atkdmg_off">
+							Atk : <span id="mdata_atk">--~--</span>　　
+							Def : <span id="mdata_def">--+--</span><br /></span>
+							<span id="atkdmg_on" style="display:none;">
+							被Dmg : Ave.<span id="mydata_def">--</span>　　
+							与Dmg : Ave.<span id="mydata_atk">--</span><br /></span>
+							<span id="matkdmg_off">
+							MAtk : <span id="mdata_matk">--~--</span>　　
+							MDef : <span id="mdata_mdef">--+--</span><br />
+							</span>
+							<span id="matkdmg_on" style="display:none;">
+							被MDmg : Ave.<span id="mydata_mdef">--</span>　　
+							与MDmg : Ave.<span id="mydata_matk">--</span><br />
+							</span>
+							要Flee : <span id="mdata_flee">--</span>　　
+							要Hit : <span id="mdata_hit">--</span>　　
+							<br />
+							Aspd : <span id="mdata_aspd">--</span>　　
+							Exp : <span id="mdata_exp">--</span>/<span id="mdata_jexp">--</span>　　
+						</div>
+					</label>
+				</td>
+				<td>
+					<div id="message-window">
+						<span id="message-display" style="display:block;">
+							<img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ2_qB7kYI/AAAAAAAAAEY/b5yvheqkEb4/s128/loading.gif" width="18" height="18" style="vertical-align:middle;"><span style="color:#060; font-size:9pt;"> ネットワークに接続してデータをロードしています...</span>
+						</span>
+						<span id="message-status" style="display:none;">
+							<label title="Lv,ATK,HITを入力すると与Dmg予想値が計算されます">Lv <input type="text" class="text" size="2" maxlength="2" id="hom_lv" onchange="SettingParam('LV',this.value,HomType);StatusReflash();"></label> <span style="color:#0000ff; font-weight:bold;"><span id="hom-s-name"></span>のステータス</span><br />
+							<label title="Lv,ATK,HITを入力すると与Dmg予想値が計算されます">ATK <input type="text" class="text" size="4" maxlength="4" id="hom_atk" onchange="SettingParam('ATK',this.value,HomType);StatusReflash();"></label>　
+							<label title="DEFを入力すると被Dmg予想値が計算されます">DEF <input type="text" class="text" size="3" maxlength="3" id="hom_def" onchange="SettingParam('DEF',this.value,HomType);StatusReflash();"></label>　
+							<label title="Lv,ATK,HITを入力すると<br />与Dmg予想値が計算されます<br />HITを入力すると命中率が<br />計算されます(最大95%)">HIT <input type="text" class="text" size="3" maxlength="3" id="hom_hit" onchange="SettingParam('HIT',this.value,HomType);StatusReflash();"></label>　
+							<label title="CRIを入力するとLUKが計算されます。">CRI <input type="text" class="text" size="3" maxlength="3" id="hom_cri" onchange="SettingParam('CRI',this.value,HomType);StatusReflash();"></label><br />
+							<label title="MATKを入力すると[バニルミルト]与MDmg予想値,<br />[リーフ]MCh与Dmg予想値が計算されます">MATK <input type="text" class="text" size="4" maxlength="4" id="hom_matk" onchange="SettingParam('MATK',this.value,HomType);StatusReflash();"></label>　
+							<label title="MDEFを入力すると被MDmg予想値が計算されます">MDEF <input type="text" class="text" size="3" maxlength="3" id="hom_mdef" onchange="SettingParam('MDEF',this.value,HomType);StatusReflash();"></label>　
+							<label title="FLEEを入力すると回避率が<br />計算されます(最大95%)">FLEE <input type="text" class="text" size="3" maxlength="3" id="hom_flee" onchange="SettingParam('FLEE',this.value,HomType);StatusReflash();"></label><br />
+							<span class="red" style="font-size:8pt;">※ここで値を変更した場合、設定ファイルを保存してください。</span>
+						</span>
+					</div>
+						<!-- フキダシの矢印 -->
+						<div id="message-window-t"></div><div id="message-window-tn"></div>
+						<div id="message-window-t2"></div><div id="message-window-tn2"></div>
+					
+				</td>
+				<td>
+					<label title="ステータス表示/<br />設定表示切替">
+						<div id="hom-image">
+							<div id="hom-name-u"></div><div id="hom-name"></div>
+							<div id="graphic"></div>
+						</div>
+					</label>
+				</td>
+				</tr>
+			</table>
+			<!-- 稼働時間・スキルタイマーなどの時間管理 -->
+			<div id="timers">
+				<label id="aitimer" title="ダブルクリックで稼働時間がリセットされます。" unselectable="on" ondblclick="TimerReset();">稼働時間 0:00:00</label>
+				<ul id="active-skills">
+					<!-- スキルアイコン・残り時間 -->
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+					<li><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" /><span style="color:#00F">50</span>sec</li>
+				</ul>
+				<div id="speaker" onclick="SpeakerCheck();"></div>
+				<bgsound id="alarm" src="" loop="1" />
+			</div>
+			<div id="em_icon"><!-- 餌アイコン --><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TCDa8xIP3OI/AAAAAAAAAH4/MKfsCIh617A/abg.png" width="24" height="24" id="food-icon" /></div>
+		</div>
+<!-- メッセージモニタのHTMLここまで -->
+		
+<!-- Set.luaエディタのHTML -->
+		<div id="setting">
+			<h2><label title="ホムンクルスごとの基本動作・スキルに関する設定を編集します。"><img src="http://lh6.ggpht.com/_8Hzx_QBHnQA/TBOPisT4cOI/AAAAAAAAAGQ/wX0CAbQr_Lg/cog.png" width="16" height="16" class="mini-icon" /></label>こっこAI 設定エディタ</h2>
+			<div id="util_btn">
+				
+				<span class="button" id="set-save" onClick="SaveSet();"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ3Ve6M4YI/AAAAAAAAAE8/uT4y7hNQrj8/s128/save.png" width="16" height="16" class="mini-icon" />設定を保存</span>
+				<span class="button" id="set-reload" onClick="ReloadSet();"><img src="http://lh6.ggpht.com/_8Hzx_QBHnQA/TBJ3U3_IJ0I/AAAAAAAAAE0/7sSkZJR2xEE/s128/refresh.png" width="16" height="16" class="mini-icon" />再読込</span>
+				<span style="padding:0 0 0 15px;">設定中：<span id="set-hom-name"><!-- 設定中のホム名 --></span></span>
+			</div>
+			<!-- Set.luaのメニュー -->
+			<div id="set_menu">
+				<ul>
+					<li onclick="setMenuTab('s_top',0)" class="activetab"><span>top</span></li>
+					<li onclick="setMenuTab('s_walk',1)"><span>walk</span></li>
+					<li onclick="setMenuTab('s_battle1',2)"><span>battle1</span></li>
+					<li onclick="setMenuTab('s_battle2',3)"><span>battle2</span></li>
+					<li onclick="setMenuTab('s_skill1',4)"><span>skill1</span></li>
+					<li onclick="setMenuTab('s_skill2',5)"><span>skill2</span></li>
+					<li onclick="setMenuTab('s_action1',6)"><span>action1</span></li>
+					<li onclick="setMenuTab('s_action2',7)"><span>action2</span></li>
+					<li onclick="setMenuTab('s_action3',8)"><span>action3</span></li>
+					<li onclick="setMenuTab('s_common',9)"><span>common</span></li>
+					<li onclick="setMenuTab('s_status',10)"><span>status</span></li>
+				</ul>
+				
+			</div>
+			<div id="set_main">
+				<div id="s_top">
+					<h3>Set.luaエディタ</h3>
+					<p id="set-alert"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ2_qB7kYI/AAAAAAAAAEY/b5yvheqkEb4/s128/loading.gif" width="18" height="18" class="mini-icon" />Set.luaをロードしています。</p>
+					<h4>ホムンクルス選択</h4>
+					<p>
+						<ul id="hom-list">
+							
+						</ul>
+						<span id="select-hom-field" style="display:none;">
+							ホムンクルス：<span id="select-hom-area"><!-- ホム選択肢 --></span>の設定　
+							<button class="button" id="add-hom-btn" style="padding:2px 8px;" onclick="AddHom(); this.blur();"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ2c7v6_ZI/AAAAAAAAAD0/XgKbK2ERwwk/s128/add.png" width="16" height="16" class="mini-icon" />追加</button>　<span style="color:#F00;font-size:8pt">※原種・亜種、未進化・進化ごとに設定が区別されます。</span>
+						</span>
+					</p>
+				</div>
+				<div id="s_walk">
+					<h3>移動に関する設定</h3>
+					<h4>待機中の旋回動作に関する設定</h4>
+					<p><label title="待機中に旋回ダンスをするかどうかの設定です。" class="i-icon"></label>
+						旋回ダンスする<input type="radio" checked="" value="true" id="RondoFlag-t" name="RondoFlag" class="radio" />　　しない<input type="radio" value="false" id="RondoFlag-f" name="RondoFlag" class="radio" /><br />
+					</p>
+					<p><label title="旋回ダンスをする場合、そのパターンと条件を設定できます。<br />--旋回のパターンをセレクトボックスから選択してください。<br />--HP/SPが指定%以下では旋回しないように設定できます。<br />--旋回の半径距離を設定できます。主人または自分が中心になります。<br />--旋回の時間間隔をミリ秒で指定します。（1秒＝1000ミリ秒）<br />--旋回時のステップの時間間隔をミリ秒で指定します。（旋回図形の点毎に停止する時間）" class="i-icon"></label>
+						旋回パターン <select class="sel" id="RondoPattern"><option value="1">その場で旋回</option><option value="2">主人を中心に菱形旋回</option><option value="3">主人を中心に正方形旋回</option><option value="4">主人を中心に十字型</option><option value="5">主人を中心に円形旋回</option><option value="6">主人の周りを8の字旋回</option><option value="8">範囲内をランダム移動</option></select><br />
+						HP/SPが <input type="text" class="text" maxlength="3" size="3" value="90" id="PatrolRest" /> %以上の時， 半径 <input type="text" class="text" maxlength="2" size="2" value="1" id="RondoRadius" /> セルで旋回<br />
+						旋回間隔 <input type="text" class="text" maxlength="5" size="5" value="15000" id="PatrolInterval" /> ミリ秒　　　ステップ間隔 <input type="text" class="text" maxlength="5" size="5" value="0" id="StepDelay" /> ミリ秒
+					</p>
+					<h4>移動・追従に関する設定</h4>
+					<p><label title="待機状態のとき、主人が移動を始めて何セル離れたら追従を開始するか設定します。<br />また、追従したときに主人と何セル離れたところで停止するかも設定できます。<br />--2セル隣を目標にすると、主人と1セル空けて待機するようになります。<br />--この値は、追従開始の距離よりも小さくしてください。" class="i-icon"></label>
+						待機時に主人との距離が <input type="text" class="text" maxlength="2" size="2" value="2" id="FollowDistance"> セル空いたら追従開始<br />
+						追従時に主人の <input type="text" class="text" maxlength="1" size="1" value="2" id="ChaseDistance"> セル後ろを目標に移動<br />
+						追従時の目標地点を <select class="sel" id="ToOwnerSide"><option value="0">ずらさない</option><option value="1">右にずらす</option><option value="-1">左にずらす</option></select>
+					</p>
+					<p><label title="Alt+地面クリックでホムンクルスを手動移動させた後、<br />移動先で休息状態に切り替わるようになります。" class="i-icon"></label>
+					手動命令による移動後に休息状態にする<input type="radio" value="true" id="MoveToStay-t" name="MoveToStay" class="radio">　　しない<input type="radio" checked="" value="false" id="MoveToStay-f" name="MoveToStay" class="radio"></p>
+					<p><label title="ホムンクルスのSP回復が4秒毎のため、SPが回復しそうな時は<br />回復のタイミングまで移動を一時停止するようになります。<br />指定秒留まっている時にSP回復待ちをするようになります。<br />--敵を追跡するときなどはSP回復待ちをしません。" class="i-icon"></label>
+						SPが <input type="text" class="text" maxlength="3" size="3" value="80" id="SPR_Rate"> %以下の時，移動前にSP回復待ちをする<input type="radio" value="true" id="WaitSPR-t" name="WaitSPR" class="radio">　　しない<input type="radio" checked="" value="false" id="WaitSPR-f" name="WaitSPR" class="radio"></p>
+					<p><label title="移動する時、ホムンクルスを主人の前に出して歩かせることができます。<br />その時、何セル先行して歩かせるかを設定できます。" class="i-icon"></label>
+					主人の前を <input type="text" class="text" maxlength="1" size="1" value="3" id="ForwardDistance"> セル先行して移動する<input type="radio" value="true" id="OnForward-t" name="OnForward" class="radio">　　しない<input type="radio" checked="" value="false" id="OnForward-f" name="OnForward" class="radio"></p>
+					<p><label title="アクティブ索敵などで、攻撃開始時敵が主人から離れている場合に<br />ターゲットを取った後主人の隣まで敵を引き付けながら戻ってくるようになります。" class="i-icon"></label>
+						戦闘開始時にフック移動をする<input type="radio" value="true" id="HookShot-t" name="HookShot" class="radio">　　しない<input type="radio" checked="" value="false" id="HookShot-f" name="HookShot" class="radio"></p>
+					
+				</div>
+				<div id="s_battle1">
+					<h3>戦闘設定1</h3>
+					<h4>アクティブ・ノンアクティブの設定</h4>
+					<p><label title="アクティブに敵を攻撃しにいくようになります。<br />また、いくつかの条件を指定できます。<br />--HP/SPが指定%以下の時は、ノンアクティブになります。<br />--主人より半径指定セル以内の範囲に居る敵しかターゲットしません。<br />※主人が座っているときにAlt+Tで休息状態→待機状態に切り替えると<br />同時にアクティブ/ノンアクティブも一時的に切り替わります。" class="i-icon"></label>
+						HPが <input type="text" class="text" maxlength="3" size="3" value="40" id="ActiveHP"> %以上かつSPが <input type="text" class="text" maxlength="3" size="3" value="0" id="ActiveSP"> %以上の時<br />
+						主人から <input type="text" class="text" maxlength="2" size="2" value="7" id="TargetDistance"> セル以内の敵に アクティブに攻撃する<input type="radio" value="true" id="ActiveFlag-t" name="ActiveFlag" class="radio">　　しない<input type="radio" checked="" value="false" id="ActiveFlag-f" name="ActiveFlag" class="radio"></p>
+					<p><label title="Mob別設定で、対応「先制攻撃」に設定したMobに対してのみ、<br />アクティブに攻撃するようになります。<br />設定しているMobが居ない時は、ノンアクティブです。" class="i-icon"></label>
+						指定のMobに対してのみアクティブに攻撃する<input type="radio" checked="" value="true" id="HalfActive-t" name="HalfActive" class="radio">　　しない<input type="radio" value="false" id="HalfActive-f" name="HalfActive" class="radio"></p>
+					<p><label title="友達ではない他プレイヤーが近くに居る時、<br />横殴り防止のためアクティブ索敵のターゲット範囲を縮小します。<br />--主人またはホムンクルスからの距離に応じて変動します。<br />他プレイヤーから指定セル内にいるフリーのMobはターゲットしません。<br />--ターゲットした敵のところへ移動中、攻撃に入る前までに<br />他プレイヤーがこの指定セル内に入ってもキャンセルします。" class="i-icon"></label>
+						他人との距離に応じてアクティブ攻撃範囲を減少する<input type="radio" checked="" value="true" id="ActiveRange-t" name="ActiveRange" class="radio">　　しない<input type="radio" value="false" id="ActiveRange-f" name="ActiveRange" class="radio"><br />
+						主人から <input type="text" class="text" maxlength="2" size="2" value="6" id="LimitRangeDist"> セル以内の距離に他人が居るとノンアクティブ化<br />
+						ターゲットしたMobから <input type="text" class="text" maxlength="2" size="2" value="4" id="OthersRange"> セル以内に他人が居たらターゲットキャンセル</p>
+					<h4>ターゲット管理に関する設定</h4>
+					<p><label title="通常は一旦敵を攻撃し始めると、倒すまで同じ敵を攻撃し続けます。<br />この設定では、主人が攻撃する相手を変えると<br />それに合わせてホムンクルスも攻撃相手を変えるようになります。" class="i-icon"></label>
+						常に主人と同じ敵を攻撃する<input type="radio" value="true" id="FollowOwnerTargetting-t" name="FollowOwnerTargetting" class="radio">　　しない<input type="radio" checked="" value="false" id="FollowOwnerTargetting-f" name="FollowOwnerTargetting" class="radio"></p>
+					<p><label title="一定時間、主人と同じ敵を攻撃し続けている他プレイヤーを<br />自動的に友達と認識し、Friend.luaに登録します。" class="i-icon"></label>
+						主人と同じ敵を叩くPCを自動友達登録する<input type="radio" checked="" value="true" id="AutoFriend-t" name="AutoFriend" class="radio">　　しない<input type="radio" value="false" id="AutoFriend-f" name="AutoFriend" class="radio"></p>
+					<p><label title="主人をターゲット中で、主人がまだ攻撃していない敵のターゲットを奪います。<br />設定値の数までターゲットを奪います。0の時は特になにもしません。" class="i-icon"></label>
+						主人を攻撃していて、まだ主人がダメージを与えていない敵を <input type="text" class="text" maxlength="1" size="1" value="0" id="RobTarget"> 匹までタゲ取りする。</p>
+					<h4>戦闘範囲・戦闘中の移動に関する設定</h4>
+					<p><label title="戦闘中に、主人がこのセルだけ離れると、戦闘をキャンセルして主人に追従します。<br />友達と一緒に戦闘する時は、戦闘範囲が広くなりがちなので、<br />この範囲を一時的に指定のセルに変更できます。" class="i-icon"></label>
+						戦闘時に主人と <input type="text" class="text" maxlength="2" size="2" value="7" id="OnBattleDistance"> セル(友達が居る時は<input type="text" class="text" maxlength="2" size="2" value="10" id="OnBattleDistancePlus"> セル)離れたら戦闘をキャンセルして戻る</p>
+					<p><label title="敵を攻撃するときに取る距離の設定です。<br />--この値が1の時、隣のセルで攻撃します。2の時、1セル空けて攻撃します。<br />※1,2以外の数値を入力しないでください。" class="i-icon"></label>
+						戦闘時に <select class="text" id="AttackDistance"><option value="1">敵の隣のセルで</option><option value="2">敵から1セル空けて</option></select>攻撃する</p>
+					<p><label title="戦闘中、主人や敵と同じセルに重なるのを避けます。<br />ホムンクルスにポーションピッチャーをかけやすくなります。<br />--敵の背後に向かって避けるか、指定の方向に向かって避けるかを設定できます。" class="i-icon"></label>
+						戦闘時に主人または敵と同じ座標に重なった場合 <select class="text" id="AwayType"><option value="1">敵の背後</option><option value="0">固定の方向</option></select> に向かって<input type="text" class="text" maxlength="1" size="1" value="2" id="AwayStep"> セル移動する<input type="radio" checked="" value="true" id="HateOverlap-t" name="HateOverlap" class="radio">　　しない<input type="radio" value="false" id="HateOverlap-f" name="HateOverlap" class="radio"></p>
+					<h4>共闘（手加減）モードに関する設定</h4>
+					<p><label title="戦闘開始時に敵を1~2回程度攻撃した後、その敵が死ぬまで攻撃をやめます。<br />共闘ボーナスだけ付けさせ、後は主人や他プレイヤーが倒す場合に設定します。<br />--指定の数の敵に攻撃されているときは、この設定を一時的に無効にし、普通に戦います。<br />--攻撃を止めるまでの時間をミリ秒で指定できます。（1秒＝1000ミリ秒）" class="i-icon"></label>
+						敵の数が <input type="text" class="text" maxlength="1" size="1" value="3" id="BonusBorder"> 匹以下の時は共闘ボーナスモードにする<input type="radio" value="true" id="BonusMode-t" name="BonusMode" class="radio">　　しない<input type="radio" checked="" value="false" id="BonusMode-f" name="BonusMode" class="radio"><br />
+					戦闘開始から <input type="text" class="text" maxlength="4" size="4" value="500" id="BonusTime"> ミリ秒間のみ攻撃<br />
+					平均戦闘時間データがある場合、平均の <input type="text" class="text" maxlength="3" size="3" value="0" id="BonusTimeRate"> %の時間が経過するまで攻撃(0で無効)</p>
+				</div>
+				<div id="s_battle2">
+					<h3>戦闘設定2</h3>
+					<h4>モーションキャンセル（ASPD補正）の設定</h4>
+					<p><label title="ASPD補正のため、AIの1サイクル中Attackコマンドを送信する回数を調整します。<br />--通称ゼロ移動キャンセルという方法になります。<br />--あまり違いが見られないようなら、「普通」にしておくことをお勧めします。" class="i-icon"></label>
+						攻撃モーションキャンセル（0移動：ASPD補正）<select class="text" id="MultiAttack"><option value="2">普通（中負荷）</option><option value="3">高速（高負荷）</option><option value="1">なし（低負荷）</option></select></p>
+					<p><label title="ゼロ移動ではなく、実際の移動を行い攻撃モーションキャンセル（ASPD向上）をします。<br />戦闘中敵の周りを移動し続けるため、攻撃中はSPが回復しなくなりますが、<br />ゼロ移動キャンセルより比較的高速な攻撃が出来るようになります。<br />（ホムンクルスのレベル、種族によって効果の程度は異なります。）<br />--前項目の攻撃モーションキャンセルが「普通(中負荷)」以上の時のみ有効になります。<br />--SPを温存するため、指定SP以下は移動キャンセルをしないように設定できます。" class="i-icon"></label>
+						移動によるモーションキャンセルをする<input type="radio" value="true" id="MovingCancel-t" name="MovingCancel" class="radio">　　しない<input type="radio" checked="" value="false" id="MovingCancel-f" name="MovingCancel" class="radio">　　（この時，戦闘中にSPが回復しません）<br />HPが <input type="text" class="text" maxlength="2" size="2" value="0" id="MovingHP"> %以上 およびSPが <input type="text" class="text" maxlength="2" size="2" value="30" id="MovingSP"> %以上のときのみ移動キャンセルする</p>
+					<h4>索敵条件に関する設定</h4>
+					<p><label title="各索敵条件に優先度を設定します。<br />この優先度にしたがって、ホムンクルスがターゲットを決定します。<br />--値に制限はありませんが、10以上にする場合は<br />　どうしても優先したい条件のみに絞った方がよいです。<br />--同じ数字を入力しても構いません。<br />--0を入力すると、その索敵条件は無視されるようになります。" class="i-icon"></label>
+						索敵条件　優先度設定値　（数値が高いほど優先：1~10推奨）<br />
+					<table><tbody>
+						<tr>
+							<td>・主人を攻撃している敵（敵→主人）</td><td>優先度：<input type="text" class="text" maxlength="2" size="2" value="9" id="TargetPriority[TP_En2Ow]"></td>
+						</tr>
+						<tr>
+							<td>・ホムンクルスを攻撃している敵（敵→ホム）</td><td>優先度：<input type="text" class="text" maxlength="2" size="2" value="8" id="TargetPriority[TP_En2Me]"></td>
+						</tr>
+						<tr>
+							<td>・友達を攻撃している敵（敵→友達）</td><td>優先度：<input type="text" class="text" maxlength="2" size="2" value="6" id="TargetPriority[TP_En2Fr]"></td>
+						</tr>
+						<tr>
+							<td>・主人が攻撃している敵（主人→敵）</td><td>優先度：<input type="text" class="text" maxlength="2" size="2" value="10" id="TargetPriority[TP_Ow2En]"></td>
+						</tr>
+						<tr>
+							<td>・友達が攻撃している敵（友達→敵）</td><td>優先度：<input type="text" class="text" maxlength="2" size="2" value="7" id="TargetPriority[TP_Fr2En]"></td>
+						</tr>
+						<tr>
+							<td>・主人からの距離が近い敵</td><td>優先度：<input type="text" class="text" maxlength="2" size="2" value="5" id="TargetPriority[TP_Dist]"></td>
+						</tr>
+						<tr>
+							<td>・個別優先度設定値が高い敵</td><td>優先度：<input type="text" class="text" maxlength="2" size="2" value="4" id="TargetPriority[TP_Rank]"></td>
+						</tr>
+						<tr>
+							<td>・戦闘時間が短い敵</td><td>優先度：<input type="text" class="text" maxlength="2" size="2" value="3" id="TargetPriority[TP_Rec]"></td>
+						</tr>
+						<tr>
+							<td></td>
+						</tr>
+					</tbody></table>
+					</p>
+					<p><label title="任意の職業の友達が居る場合、その友達が攻撃している/攻撃されている敵に対して<br />索敵優先度を上昇させることができます。<br />--戦闘職の友達と同じ敵を攻撃したいときは、<br />　【友達→敵】で友達の職を選び、優先度倍率を上げます。<br />--後衛職の友達を守りたい場合は、<br />　【敵→友達】で友達の職を選び、優先度倍率を上げます。" class="i-icon"></label>
+						友達の職業による優先度　（数値が高いほど優先：0~3推奨，基準値1）<br />
+						【友達→敵】の優先度を指定数倍<br />
+						・友達<select class="text" id="FriendPriorityA-1"><script type="text/javascript">JobsSelect();</script></select>が攻撃している敵　優先度×<input type="text" class="text" maxlength="3" size="2" value="1" id="FriendPriorityA-v1"><br />
+						・友達<select class="text" id="FriendPriorityA-2"><script type="text/javascript">JobsSelect();</script></select>が攻撃している敵　優先度×<input type="text" class="text" maxlength="3" size="2" value="1" id="FriendPriorityA-v2"><br />
+						・友達<select class="text" id="FriendPriorityA-3"><script type="text/javascript">JobsSelect();</script></select>が攻撃している敵　優先度×<input type="text" class="text" maxlength="3" size="2" value="1" id="FriendPriorityA-v3"><br/>
+						【敵→友達】の優先度を指定数倍<br />
+						・友達<select class="text" id="FriendPriorityD-1"><script type="text/javascript">JobsSelect();</script></select>を攻撃している敵　優先度×<input type="text" class="text" maxlength="3" size="2" value="1" id="FriendPriorityD-v1"><br />
+						・友達<select class="text" id="FriendPriorityD-2"><script type="text/javascript">JobsSelect();</script></select>を攻撃している敵　優先度×<input type="text" class="text" maxlength="3" size="2" value="1" id="FriendPriorityD-v2"><br />
+						・友達<select class="text" id="FriendPriorityD-3"><script type="text/javascript">JobsSelect();</script></select>を攻撃している敵　優先度×<input type="text" class="text" maxlength="3" size="2" value="1" id="FriendPriorityD-v3"><br />
+					</p>
+				</div>
+				<div id="s_skill1">
+					<h3>スキル設定1</h3>
+					<h4>オートスキルに関する設定</h4>
+					<p>
+						<label class="i-icon" title="戦闘中にオートで使用するスキルを選択します。<br />オートスキルは、ここで設定した順番に自動使用を試行しますので、<br />複数のスキルが同時に使用条件を満たすとき、この順番の先にある方から使用されます。<br />スキルテーブルは5つまで設定することができ、Mob設定値で切り替えが可能です。<br />回復スキル、加速スキルについては戦闘以外でも使用するので、<br />このテーブルに追加しなくても使用します。"></label>
+						戦闘中に自動使用するスキル一覧　<span id="SkillTable-form"><!-- <select class="text" id="AST_Num"></select> --></span>
+						<blockquote id="skilltable"style="margin-top:0;"></blockquote><span class="ast-exp">※戦闘中に自動使用するスキルは、スキルごとの設定から追加・削除できます。</span>
+					</p>
+					<h4>スキルごとの設定</h4>
+					<p style="height:36px;">
+						<label id="skillicon" title="設定中のスキル"></label><span id="AutoSkillType-form"><!-- <select class="text" id="AutoSkillType"></select> --></span> の設定
+						<span style="padding-left:20px;" id="skilltable-add">このスキルを　<button class="button" style="font-size:8pt;padding:2px 4px 1px;vertical-align:middle;width:130px;" onclick="AddSkillTable();" id="skilltable-add-btn">テーブルに追加</button></span>
+						<span style="padding-left:20px;display:none;font-size:10px;color:#f00;" id="skilltable-no-add">※このスキルはテーブルに追加しなくても[使用する]にチェックのみで使用します。</span>
+					</p>
+					<span id="atk-skill">
+						<p><label title="このスキルは、ここで指定したSP%範囲外の時使用しなくなります。" class="i-icon"></label>
+							SPが <input type="text" class="text" maxlength="4" size="3" value="20" id="skill-AutoSkillSPLimit"  name="skill-AutoSkillSPLimit"> 
+							<select class="text" id="skill-AutoSkillSPPer"  name="skill-AutoSkillSPPer"><option value="1" selected>%</option><option value="0">値</option></select>
+							以上 <input type="text" class="text" maxlength="4" size="3" value="100" id="skill-AutoSkillSPLimit2" name="skill-AutoSkillSPLimit2"> 
+							<select class="text" id="skill-AutoSkillSPPer2"  name="skill-AutoSkillSPPer2"><option value="1" selected>%</option><option value="0">値</option></select>
+							以下の時に<span name="now-skillname" id="now-skillname">スキル</span>の自動使用を許可</p>
+						<p><label title="戦闘中のオート攻撃スキルの基本発動レベルを設定します。<br />--Mob別設定や、レベル調整が無い場合はこのレベルでスキルが発動します。" class="i-icon"></label>
+							<span name="now-skillname" id="now-skillname">オート攻撃スキル</span>を基本レベル <input type="text" class="text" maxlength="1" size="1" value="5" id="skill-AS_SkillLevel"> で使用する</p>
+						<p><label title="戦闘中のオート攻撃スキルの発動確率を設定します。<br />--基本確率は式の通りに設定します。<br />　式の設定値の一番左が最低保証値になります。<br />　真ん中と右の二つは現在のSPによって変動する部分です。<br />　真ん中の値が大きいと、SP量による追加発動率の影響が大きくなります。<br />　右の値が大きいと、SP量による追加発動率の変動が大きくなります。" class="i-icon"></label>
+							<span name="now-skillname" id="now-skillname">オート攻撃スキル</span>の基本発動率 = <input type="text" class="text" maxlength="3" size="3" value="0" id="skill-AspBase"> + <input type="text" class="text" maxlength="3" size="3" value="10" id="skill-AspCoefficient">×(SP/MaxSP)^<input type="text" class="text" maxlength="1" size="1" value="2" id="skill-AspExponential"> [%]
+							<span id="explain-COMBO" name="explain-COMBO" style="margin:0;color:#F00;font-size:10px">※対応するコンボスキルが発動した直後のみ判定します。コンボを毎回必ず繋げたい場合、確率が100%以上になるように設定してください。</span>
+						</p>
+						<p><label title="平均戦闘時間のデータがある敵に対し、<br />その長さに応じて攻撃スキルのレベルを自動調整します。" class="i-icon"></label>
+							スキルレベルの自動調整をする<input type="radio" checked="" value="true" id="skill-AutoAdjust-t" name="AutoAdjust" class="radio">　　しない<input type="radio" value="false" id="skill-AutoAdjust-f" name="AutoAdjust" class="radio"><br />
+							<table cellspacing="1" cellpadding="5" border="0" class="autoadjust"><tbody>
+								<tr><td>スキルLv</td><td>Lv1</td><td>Lv2</td><td>Lv3</td><td>Lv4</td><td>Lv5</td></tr>
+								<tr><td>戦闘時間<br /><span style="font-size:10px;">(ミリ秒)</span></td>
+								<td><input type="text" class="text" maxlength="5" size="5" value="1500" id="skill-AS_threshold[1]"><br /><span style="font-size:10px;">以上</span></td>
+								<td><input type="text" class="text" maxlength="5" size="5" value="2000" id="skill-AS_threshold[2]"><br /><span style="font-size:10px;">以上</span></td>
+								<td><input type="text" class="text" maxlength="5" size="5" value="3000" id="skill-AS_threshold[3]"><br /><span style="font-size:10px;">以上</span></td>
+								<td><input type="text" class="text" maxlength="5" size="5" value="4000" id="skill-AS_threshold[4]"><br /><span style="font-size:10px;">以上</span></td>
+								<td><input type="text" class="text" maxlength="5" size="5" value="5000" id="skill-AS_threshold[5]"><br /><span style="font-size:10px;">以上</span></td></tr>
+							</tbody></table>
+						</p>
+						<p><label title="平均戦闘時間のデータがある敵に対し、<br />戦闘時の経過時間によって攻撃スキルの発動率に指定倍率をかけます。<br />--デフォルト値：戦闘時の経過時間が<br />　平均戦闘時間の24%未満…発動率×1<br />　平均戦闘時間の25~49%…発動率×1<br />　　　　・<br />　　　　・<br />　　　　・<br />　平均戦闘時間の200%以上…発動率×1" class="i-icon"></label>
+							戦闘時間の経過によりAS確率を調整<br />
+							<table cellspacing="1" cellpadding="5" border="0" class="aspmagni"><tbody>
+							<tr><td width="65"><p style="margin:0;padding:3px;border-bottom:solid 1px #666;font-size:10px;">経過時間</p><p style="margin:0;padding:3px;font-size:10px;">平均時間</p></td><td>~24%</td><td>25~<br />49%</td><td>50~<br />74%</td><td>75~<br />99%</td><td>100~<br />124%</td><td>125~<br />149%</td><td>150~<br />174%</td><td>175~<br />199%</td><td>200%~</td></tr>
+							<tr><td>AS倍率</td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[1]"></td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[2]"></td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[3]"></td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[4]"></td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[5]"></td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[6]"></td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[7]"></td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[8]"></td>
+								<td>x<input type="text" class="text" maxlength="3" size="1" value="1" id="skill-ASP_MagniT[9]"></td></tr>
+							</tbody></table>
+						</p>
+						<blockquote id="enable-COMBO" name="enable-COMBO" style="margin:0;">
+						<p><label title="戦闘開始直後に100%の確率で一度だけ攻撃スキルを発動するようになります。<br />その時の発動レベルを設定できます。<br />また、戦闘開始前のターゲット追跡段階で、<br />遠距離から攻撃スキルを発動させることもできます。" class="i-icon"></label>
+							初撃に<span name="now-skillname" id="now-skillname">攻撃スキル</span>をレベル <input type="text" class="text" maxlength="1" size="1" value="1" id="skill-FA_SkillLevel"> で使用する<input type="radio" value="true" id="skill-FirstAttack-t" name="FirstAttack" class="radio">　　しない<input type="radio" checked="" value="false" id="skill-FirstAttack-f" name="FirstAttack" class="radio"><br />
+							<span id="enable-longrange" name="enable-longrange" style="margin:0;">
+								初撃<span name="now-skillname" id="now-skillname">スキル</span>は遠距離から発動する<input type="radio" value="true" id="skill-FA_OnChase-t" name="FA_OnChase" class="radio">　　しない<input type="radio" checked="" value="false" id="skill-FA_OnChase-f" name="FA_OnChase" class="radio">
+							</span>
+						</p>
+						<p><label title="戦闘時に、主人がスキルモーションを取った時に<br />自分も同時に攻撃スキルを発動させます。<br />--主人のスキルが何であるかは判別しないので、<br />　ラウドボイスやポーションピッチャーにも反応します。" class="i-icon"></label>
+							主人のスキルモーションに反応して<span name="now-skillname" id="now-skillname">攻撃スキル</span>を発動する<input type="radio" value="true" id="skill-CrossFire-t" name="CrossFire" class="radio">　　しない<input type="radio" checked="" value="false" id="skill-CrossFire-f" name="CrossFire" class="radio">
+						</p>
+						<p><label title="交戦中の的に数が指定数以上からこのスキルを使用するようになります。<br />複数の敵に囲まれてからスキルを使い始めたい時は2以上にしてください。" class="i-icon"></label>
+							敵の数が<input type="text" class="text" maxlength="1" size="1" value="0" id="skill-AttackLimit"> 匹以上の時だけ使用する（1以下だと常時）
+						</p>
+						</blockquote>
+						<blockquote id="limit-REGION" name="limit-REGION" style="margin:0;">
+						<p><label title="サモンレギオンの効果時間を一部キャンセルして再使用します。<br />持続時間が指定%以下になると、再使用フラグを立てます。（100にすると、常にかけ直し）<br />※再使用フラグが立った時、レギオンがスタックしてもそのままにします。" class="i-icon"></label>
+							サモンレギオンの効果時間が残り<input type="text" class="text" maxlength="3" size="2" value="0" id="RegionResetRate"> %以下になった時、時間中でも敵が変わった時に再使用する。
+						</blockquote>
+					</span>
+					<span id="buf-skill">
+						<blockquote id="enable-SWITCH" name="enable-SWITCH" style="margin:0;">
+							<p><span name="now-skillname" id="now-skillname">オートスイッチスキル</span>を設定する場合、<span style="color:#f00;font-weight:700;">必ずスキルテーブルの先頭に配置</span>してください。<br>
+							<!--
+							<span style="color:#e0e;font-weight:700;">スキルテーブル2</span>がスイッチテーブルに設定されています。<br>
+							<span style="color:#009;font-weight:700;">スキルテーブル1</span>に<label title="ソニッククロウ<br>シルバーベインラッシュ<br>ミッドナイトフレンジ "style="color:#009;font-weight:700;">ファイタースタイルのスキル</label>、
+							<span style="color:#e0e;font-weight:700;">スキルテーブル2</span>に<label title="ティンダーブレイカー<br>C.B.C<br>E.Q.C" style="color:#e0e;font-weight:700;">グラップラータイプのスキル</label>を配置してください。</label></p>
+							-->
+							<p>対応するスキルの使用判定があった時に、スタイルが一致していなければ割り込みで使用します。<br>
+							スタイルが一致している限りは基本発動しません。</p>
+							<p>※初期状態は<span style="color:#f00;font-weight:700;">グラップラースタイル</span>です。<br />
+							　設定前に手動で切り替えていると、AIの判断と実際の状態がずれていることがあるため、<br>
+							　手動で<span name="now-skillname" id="now-skillname">オートスイッチスキル</span>を使用して状態を合わせるようにしてください。<br />
+							　(状態が合わないままスキルを使うと「…」エモーションとスキル使用失敗ログが出ます)</p>
+							<p>※オートスイッチを利用する場合、ラグ・ディレイ等が原因でスイッチ状態がずれることがあります。<br>
+							　その場合、一旦手動で<span name="now-skillname" id="now-skillname">オートスイッチスキル</span>を使用し、状態を合わせるようにしてください。</p>
+						</blockquote>
+						<p><label title="このスキルは、ここで指定したSP%範囲外の時使用しなくなります。" class="i-icon"></label>
+							SPが <input type="text" class="text" maxlength="4" size="3" value="20" id="skill-AutoSkillSPLimit"  name="skill-AutoSkillSPLimit"> 
+							<select class="text" id="skill-AutoSkillSPPer"  name="skill-AutoSkillSPPer"><option value="1" selected>%</option><option value="0">値</option></select>
+							以上 <input type="text" class="text" maxlength="4" size="3" value="100" id="skill-AutoSkillSPLimit2" name="skill-AutoSkillSPLimit2"> 
+							<select class="text" id="skill-AutoSkillSPPer2"  name="skill-AutoSkillSPPer2"><option value="1" selected>%</option><option value="0">値</option></select>以下の時に<span name="now-skillname" id="now-skillname">スキル</span>の自動使用を許可</p>
+						<p><label title="このスキルは、ここで指定したHP%範囲外の時使用しなくなります。" class="i-icon"></label>
+							自分のHPが <input type="text" class="text" maxlength="3" size="3" value="100" id="skill-AutoBufferMyHP"  name="skill-AutoBufferMyHP"> %以下または
+							主人のHPが <input type="text" class="text" maxlength="3" size="3" value="100" id="skill-AutoBufferHP" name="skill-AutoBufferHP"> %以下の時に自動使用を許可</p>
+						<p><label title="このスキルの持続時間の指定%秒が経過した時に、再使用します。<br />指定よりクールタイムが長い場合は、クールタイムに合わせて再使用します。" class="i-icon"></label>
+							<span name="now-skillname" id="now-skillname">オート強化スキル</span>の持続時間が <input type="text" class="text" maxlength="3" size="3" value="100" id="skill-AutoDurationCut" name="skill-AutoDurationCut"> %経過した時にかけ直す</p>
+						<blockquote id="disable-SWITCH" name="disable-SWITCH" style="margin:0;">
+						<p><label title="戦闘中、自動で強化スキルを使用するようになります。<br />基本的には指定レベルに従い、ディレイ間隔に合わせて常時使用します。<br />敵の数が一定数以上の時のみ使用するといった設定も可能です。" class="i-icon"></label>
+							<span name="now-skillname" id="now-skillname">オート強化スキル</span>をレベル <input type="text" class="text" maxlength="1" size="1" value="1" id="skill-BufferLevel" name="skill-BufferLevel"> で使用する<br />
+							敵の数が<input type="text" class="text" maxlength="1" size="1" value="0" id="skill-BufferLimit"> 匹以上の時だけ使用する（1以下だと常時）</p>
+						</blockquote>
+						<p><label title="敵をターゲット後、追跡する間に自動スキルを使用します。" class="i-icon"></label>
+							<span name="now-skillname" id="now-skillname">オート強化スキル</span>を追跡行動中に使用する<input type="radio" value="true" id="skill-usestate[CHASE_ST]-t" name="usestate[CHASE_ST]" class="radio">　　しない<input type="radio" checked value="nil" id="skill-usestate[CHASE_ST]-f" name="usestate[CHASE_ST]" class="radio"></p>
+						<p id="only-LIF_H" name="only-LIF_H">
+							<label title="リーフのオート強化スキル「メンタルチェンジ」の効果が<br />切れそうになったときに、旋回動作で知らせることができます。<br />効果時間終了の何秒前からアラートを始めるか設定できます。<br />--0に設定すればアラートしなくなります。" class="i-icon"></label>
+							メンタルチェンジ持続時間が残り <input type="text" class="text" maxlength="3" size="2" value="20" id="MentalChangeAlert"> 秒以下になった時<br />
+							<select class="text" id="MC_AlertPattern">
+							<option selected="" value="9">主人の周囲を旋回</option>
+							<option value="1">その場で旋回</option>
+							<option value="2">主人を中心に菱形旋回</option>
+							<option value="3">主人を中心に正方形旋回</option>
+							<option value="4">主人を中心に十字型</option>
+							<option value="5">主人を中心に円形旋回</option>
+							<option value="6">主人の周りを8の字旋回</option>
+							<option value="8">範囲内をランダム移動</option>
+							</select>してアラート　<font color="#ff8080">（リーフ/ホムンクルスS限定）</font>
+						</p>
+					</span>
+					<span id="res-skill">
+						<p><label title="主人のHPが指定%以下になったときに、自動で回復スキルを使用します。<br />--オート回復スキルは戦闘中だけではなく、常時発動します。<br />--カオティックベネディクションは、周囲にMobが居ない時しか発動しない制限を付けられます。<br />--治癒の手は、赤スリムポーションが無いときは自動的に使用を停止します。" class="i-icon"></label>
+							主人のHPが <input type="text" class="text" maxlength="2" size="2" value="50" id="skill-AutoRecoverHP"> %以下になった時 <span name="now-skillname" id="now-skillname">オート回復スキル</span>をレベル <input type="text" class="text" maxlength="1" size="1" value="3" id="skill-RecoverLevel"> で使用する<input type="radio" value="true" id="skill-AutoRecoverSkill-t" name="AutoRecoverSkill" class="radio">　　しない<input type="radio" checked="" value="false" id="skill-AutoRecoverSkill-f" name="AutoRecoverSkill" class="radio">
+						<p><label title="このスキルは、ここで指定したSP%範囲外の時使用しなくなります。" class="i-icon"></label>
+							SPが <input type="text" class="text" maxlength="4" size="3" value="20" id="skill-AutoSkillSPLimit" name="skill-AutoSkillSPLimit"> 
+							<select class="text" id="skill-AutoSkillSPPer"  name="skill-AutoSkillSPPer"><option value="1" selected>%</option><option value="0">値</option></select>
+							以上 <input type="text" class="text" maxlength="4" size="3" value="100" id="skill-AutoSkillSPLimit2" name="skill-AutoSkillSPLimit2"> 
+							<select class="text" id="skill-AutoSkillSPPer2"  name="skill-AutoSkillSPPer2"><option value="1" selected>%</option><option value="0">値</option></select>
+							以下の時に<span name="now-skillname" id="now-skillname">スキル</span>の自動使用を許可</p>
+						</p>
+						<p id="only-VANILMIRTH" name="only-VANILMIRTH">
+							<label title="自分のHPが指定%以下になったときに、自動で回復スキルを使用します。<br />--オート回復スキルを使用する設定の時に有効になります。<br />--自分向けのカオティックベネディクションはLv4が最適なので、レベルは固定です。" class="i-icon"></label>
+							自分のHPが <input type="text" class="text" maxlength="2" size="2" value="30" id="skill-AutoRecoverMyHP"> %以下になった時<br />
+							<span name="now-skillname" id="now-skillname">オート回復スキル</span>をレベル4(固定)で使用する
+						</p>
+						<p><label title="カオティックベネディクションは、敵Mobが画面内に居る時に<br />Mobも回復対象にしてしまうので、使用を制限することができます。<br />--制限解除した場合でも、画面内に他人と交戦中のMobが居る場合<br />　カオティックベネディクションは使用しません。" class="i-icon"></label>
+							<span name="now-skillname" id="now-skillname">オート回復スキル</span>の発動を周囲にMobが居ない時に限定する<input type="radio" value="true" id="skill-noenemy-t" name="CV_NoEnemy" class="radio" checked="">　　しない<input type="radio" value="false" id="skill-noenemy-f" name="CV_NoEnemy" class="radio">
+						</p>
+					</span>
+					<span id="acc-skill">
+					<p><label title="リーフの緊急回避を自動的に使用するようになります。<br />主人への追従を開始する時に使用します。<br />使用するレベルを設定できます。" class="i-icon"></label>
+						SPが <input type="text" class="text" maxlength="4" size="3" value="20" id="skill-AutoSkillSPLimit"> 
+						<select class="text" id="skill-AutoSkillSPPer"  name="skill-AutoSkillSPPer"><option value="1" selected>%</option><option value="0">値</option></select>
+						以上 <input type="text" class="text" maxlength="4" size="3" value="100" id="skill-AutoSkillSPLimit2"> 
+						<select class="text" id="skill-AutoSkillSPPer2"  name="skill-AutoSkillSPPer2"><option value="1" selected>%</option><option value="0">値</option></select>
+						以下の時、<br/ >
+						追従移動時に<span name="now-skillname" id="now-skillname">オート加速スキル</span>をレベル <input type="text" class="text" maxlength="1" size="1" value="1" id="skill-BufferLevel" name="skill-BufferLevel"> で使用する<input type="radio" value="true" id="skill-AutoBufferSkill-t" name="AutoAccelSkill" class="radio">　　しない<input type="radio" checked="" value="false" id="skill-AutoBufferSkill-f" name="AutoAccelSkill" class="radio"></p>
+						<p><label title="このスキルの持続時間の指定%秒が経過した時に、再使用します。<br />指定よりクールタイムが長い場合は、クールタイムに合わせて再使用します。" class="i-icon"></label>
+							<span name="now-skillname" id="now-skillname">オート強化スキル</span>の持続時間が <input type="text" class="text" maxlength="3" size="3" value="100" id="skill-AutoDurationCut" name="skill-AutoDurationCut"> %経過した時にかけ直す</p>
+					</span>
+				</div>
+				<div id="s_skill2">
+					<h3>スキル設定2</h3>
+					<h4>特殊な攻撃スキル発動条件の設定</h4>
+					<p><label title="戦闘時に接近せずに、その場から攻撃スキルを使用して攻撃します。<br />この援護射撃モード時は、アクティブに攻撃することが出来ません。<br />スキルLvを指定すると全てのスキルを固定値で使用しますが、<br />0を指定するとオート攻撃スキルやMob別スキルの設定Lvで発動します。" class="i-icon"></label>
+						常に遠距離から基本Lv <input type="text" class="text" maxlength="1" size="1" value="1" id="ShootLevel"> スキルを使用して戦闘する<input type="radio" value="true" id="ShootingMode-t" name="ShootingMode" class="radio">　　しない<input type="radio" checked="" value="false" id="ShootingMode-f" name="ShootingMode" class="radio"><br />
+						<blockquote style="line-height:1.3;margin-top:0;">
+						<font color="#ff0000">※スキルテーブルに遠距離攻撃可能なスキルが設定されている場合のみ有効です。</font><br>
+						<font color="#ff0000">※スキルLvに<b>0</b>を指定すると、オート攻撃/強化スキルやMob別スキルの設定Lvで発動します。。</font><br />
+						<font color="#ff0000">※設定された遠距離攻撃スキルのうち、先(左側)に設定されているものを優先的に使用します。</font><br />
+						<font color="#ff0000">※先に設定したスキルがクールタイムのとき、その次の遠距離攻撃スキルを使用します。</font></blockquote></p>
+					<p><label title="S.B.R.44を手動で使う場合に、<br />特定の敵にしか発動しないように設定できます。<br />発動制限をするように設定後、発動させたいMobの種族IDを入力します。<br />--例：バフォメットとオークヒーローを登録…「1039,1087」と入力。<br />--半角数字とカンマ「,」のみ入力できます。それ以外を入れるとエラーになります。" class="i-icon"></label>
+						手動S.B.R44が発動する相手を制限<font color="#ff8080">（取得しているホムンクルス限定）</font>する<input type="radio" value="true" id="LimitSBR-t" name="LimitSBR" class="radio">　　しない<input type="radio" checked="" value="false" id="LimitSBR-f" name="LimitSBR" class="radio"><br />
+						敵IDリスト：カンマ( , )で区切ってIDを列挙（スペースは使わないでください）<br />
+						<input type="text" style="text-align: left;" class="text" size="50" value="" id="SBR_Target"></p>
+					<h4>詠唱妨害に関する設定</h4>
+					<p><label title="こちらを攻撃している敵が詠唱モーションに入った時に、<br />攻撃やスキルを割り込んで当て、詠唱妨害を狙います。<br />攻撃スキルを持つ場合はスキルによる詠唱妨害が行えます。<br />--遠距離の敵に対しても詠唱妨害できます。<br />--スキルディレイ中でも、隣接している敵ならば通常攻撃で詠唱妨害します。<br />--攻撃スキルを持たない場合は、常に隣接している敵に通常攻撃で詠唱妨害します。" class="i-icon"></label>
+						スキル・通常攻撃による詠唱妨害をする<input type="radio" checked="" value="true" id="PreventEnemyCasting-t" name="PreventEnemyCasting" class="radio">　　しない<input type="radio" value="false" id="PreventEnemyCasting-f" name="PreventEnemyCasting" class="radio"></p>
+				</div>
+				<div id="s_action1">
+					<h3>行動設定1</h3>
+					<h4>トリガーアクションに関する設定</h4>
+					<table cellspacing="0" cellpadding="0" border="0" class="action-table">
+						<tbody>
+							<tr>
+								<td><label title="敵の数が指定数以上のときに取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。<br />--敵の数は「行動系3」のページで設定します。" class="t-icon"></label>
+								敵の数が <input type="text" class="text" maxlength="2" size="2" value="3" id="EnemyBorder_N"> 匹以上の時 </td>
+								<td>
+									<select class="text" id="MANY_ENEMYS[1]"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC" selected>オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option></select><br />
+									<select class="text" id="MANY_ENEMYS[2]"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC" selected>オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option></select><br />
+									<select class="text" id="MANY_ENEMYS[3]"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="敵の平均戦闘時間が指定ミリ秒以上の時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。<br />--秒数は「行動系3」のページで設定します。" class="t-icon"></label>
+								平均戦闘時間が <input type="text" class="text" maxlength="5" size="5" value="7000" id="EnemyBorder_T"> ミリ秒以上の敵に</td>
+								<td>
+									<select class="text" id="TOUGH_ENEMY[1]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_ASP_INC" selected>オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option></select><br />
+									<select class="text" id="TOUGH_ENEMY[2]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option></select><br />
+									<select class="text" id="TOUGH_ENEMY[3]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="自分（ホムンクルス）の居るセルをAlt+右クリックした時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								自分の居るセルをAlt+右クリック</td>
+								<td>
+									<select class="text" id="ALT_MY_CLICK[1]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select class="text" id="ALT_MY_CLICK[2]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select class="text" id="ALT_MY_CLICK[3]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="主人（プレイヤー）の居るセルをAlt+右クリックした時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								主人の居るセルをAlt+右クリック</td>
+								<td>
+									<select class="text" id="ALT_OWNER_CLICK[1]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select class="text" id="ALT_OWNER_CLICK[2]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select class="text" id="ALT_OWNER_CLICK[3]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="友達に登録したキャラクターの居るセルをAlt+右クリックした時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								友達の居るセルをAlt+右クリック</td>
+								<td>
+									<select class="text" id="ALT_FRIEND_CLICK[1]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_CHANGE_OWNER">オーナーチェンジ</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select class="text" id="ALT_FRIEND_CLICK[2]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_CHANGE_OWNER">オーナーチェンジ</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select class="text" id="ALT_FRIEND_CLICK[3]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_CHANGE_OWNER">オーナーチェンジ</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="主人が指定したモーションをとった時の行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								主人が<select class="text" id="T_OwnerMotion"><option selected="" value="-1">--モーションで行動しない</option><option value="0">立ちモーションの時</option><option value="1">移動モーションの時</option><option value="2">攻撃モーションの時</option><option value="4">ダメージモーションの時</option><option value="5">拾うモーションの時</option><option value="6">座るモーションの時</option><option value="7">スキルモーションの時</option><option value="8">詠唱モーションの時</option><option value="12">投げモーションの時</option></select><br /></td>
+								<td>
+									<select class="text" id="OWNER_MOTION[1]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select class="text" id="OWNER_MOTION[2]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select class="text" id="OWNER_MOTION[3]"><option selected="" value="nil">なにもしない</option><option value="TRIGGER_OnSEARCH">サーチング</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="s_action2">
+					<h3>行動設定2</h3>
+					<h4>トリガーアクションに関する設定</h4>
+					<table border="0" cellpadding="0" cellspacing="0" class="action-table">
+						<tbody>
+							<tr>
+								<td><label title="自分のHPが指定%以下になった時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								自分のHPが <input id="HomunculusSafetyHP" value="30" size="3" maxlength="3" class="text" type="text"> %以下のとき</td>
+								<td>
+									<select id="MY_HP_UNDER_SAFETY[1]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_OnESCAPE" selected>攻撃をやめて退避状態になる</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_mENEMY">自分を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="MY_HP_UNDER_SAFETY[2]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_mENEMY">自分を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="MY_HP_UNDER_SAFETY[3]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_mENEMY">自分を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="自分のSPが指定%以下になった時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								自分のSPが <input id="HomunculusSafetySP" value="30" size="3" maxlength="3" class="text" type="text"> %以下のとき</td>
+								<td>
+									<select id="MY_SP_UNDER_SAFETY[1]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_PRIORITY_mENEMY">自分を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="MY_SP_UNDER_SAFETY[2]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_PRIORITY_mENEMY">自分を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="MY_SP_UNDER_SAFETY[3]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_OnESCAPE">攻撃をやめて退避状態になる</option><option value="TRIGGER_FOLLOW_CMD_ST">休息状態になる</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_PRIORITY_mENEMY">自分を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="主人のHPが指定%以下になった時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								主人のHPが <input id="OwnerSafetyHP" value="30" size="3" maxlength="3" class="text" type="text"> %以下のとき</td>
+								<td>
+									<select id="OWNER_HP_UNDER_SAFETY[1]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC" selected>オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_oENEMY">主人を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="OWNER_HP_UNDER_SAFETY[2]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC" selected>オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_oENEMY">主人を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="OWNER_HP_UNDER_SAFETY[3]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_oENEMY">主人を攻撃する敵を優先</option><option value="TRIGGER_OnSHOOTING">援護射撃モード/通常の切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="主人のSPが指定%以下になった時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								主人のSPが <input id="OwnerSafetySP" value="30" size="3" maxlength="3" class="text" type="text"> %以下のとき</td>
+								<td>
+									<select id="OWNER_SP_UNDER_SAFETY[1]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_oENEMY">主人を攻撃する敵を優先</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option></select><br />
+									<select id="OWNER_SP_UNDER_SAFETY[2]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_oENEMY">主人を攻撃する敵を優先</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option></select><br />
+									<select id="OWNER_SP_UNDER_SAFETY[3]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_PRIORITY_oENEMY">主人を攻撃する敵を優先</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="自分のHPが1秒間に指定%以上減少した時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								自分のHPが1秒間に <input id="FallMyHpRate" value="20" size="3" maxlength="3" class="text" type="text"> %以上減った時</td>
+								<td>
+									<select id="MY_HP_EMERGENCY[1]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="MY_HP_EMERGENCY[2]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="MY_HP_EMERGENCY[3]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="自分のSPが1秒間に指定%以上減少した時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								自分のSPが1秒間に <input id="FallMySpRate" value="10" size="3" maxlength="3" class="text" type="text"> %以上減った時</td>
+								<td>
+									<select id="MY_SP_EMERGENCY[1]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="MY_SP_EMERGENCY[2]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="MY_SP_EMERGENCY[3]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_DEC">オート攻撃スキルの発動率一時減少</option><option value="TRIGGER_ASL_DEC">オート攻撃スキルのLv一時減少</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="主人のHPが1秒間に指定%以上減少した時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								主人のHPが1秒間に <input id="FallOwnerHpRate" value="20" size="3" maxlength="3" class="text" type="text"> %以上減った時</td>
+								<td>
+									<select id="OWNER_HP_EMERGENCY[1]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="OWNER_HP_EMERGENCY[2]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="OWNER_HP_EMERGENCY[3]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+							<tr>
+								<td><label title="主人のSPが1秒間に指定%以上減少した時に取る行動を設定します。<br />セレクトボックスから実行したいアクションを3つまで選択できます。" class="t-icon"></label>
+								主人のSPが1秒間に <input id="FallOwnerSpRate" value="5" size="3" maxlength="3" class="text" type="text"> %以上減った時</td>
+								<td>
+									<select id="OWNER_SP_EMERGENCY[1]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="OWNER_SP_EMERGENCY[2]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+									<select id="OWNER_SP_EMERGENCY[3]" class="text"><option value="nil">なにもしない</option><option value="TRIGGER_ASP_INC">オート攻撃スキルの発動率一時増加</option><option value="TRIGGER_ASL_INC">オート攻撃スキルのLv一時増加</option><option value="TRIGGER_OnFORWARD">先行移動モードの切り替え</option><option value="TRIGGER_ACTIVE">アクティブ/ノンアクティブの切り替え</option><option value="TRIGGER_OnMOVE">指定位置に移動</option></select><br />
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="s_action3">
+					<h3>行動設定3</h3>
+					<h4>退避行動に関する設定</h4>
+					<p><label title="退避行動時に退避する距離と退避のパターンを設定します。<br />--主人からどの位離れた距離に退避するか設定できます。<br />--退避のパターンは主人の後ろか、旋回パターンを選ぶことが出来ます。" class="i-icon"></label>
+						退避行動の設定<br />主人との距離を <input id="EscapeRange" value="3" size="1" maxlength="1" class="text" type="text"> セル取り<select id="EscapePattern" class="text"><option value="0" selected>主人の背後に移動</option><option value="1">その場で旋回</option><option value="2">主人を中心に菱形旋回</option><option value="3">主人を中心に正方形旋回</option><option value="4">主人を中心に十字型</option><option value="5">主人を中心に円形旋回</option><option value="6">主人の周りを8の字旋回</option><option value="8">範囲内をランダム移動</option></select> して退避</p>
+					<h4>トリガーアクション実行時の内容設定</h4>
+					<p><label title="「行動設定1」「行動設定2」で「オート攻撃スキルの発動率一時増加」を選んだ時<br />実行の際に増加させる発動率の数値を設定します。" class="i-icon"></label>
+						「オート攻撃スキルの発動率一時増加」選択時　増加させる確率 <input id="ASP_Increase" value="10" size="3" maxlength="3" class="text" type="text"> %</p>
+					<p><label title="「行動設定1」「行動設定2」で「オート攻撃スキルのLv一時増加」を選んだ時<br />実行の際に増加させるLvの数値を設定します。" class="i-icon"></label>
+						「オート攻撃スキルのレベル増加」選択時　増加させるレベル <input id="ASL_Increase" value="1" size="1" maxlength="1" class="text" type="text"></p>
+					<p><label title="「行動設定1」「行動設定2」で「オート攻撃スキルの発動率一時減少」を選んだ時<br />実行の際に減少させる発動率の数値を設定します。" class="i-icon"></label>
+						「オート攻撃スキルの発動率一時減少」選択時　減少させる確率 <input id="ASP_Decrease" value="10" size="3" maxlength="3" class="text" type="text"> %</p>
+					<p><label title="「行動設定1」「行動設定2」で「オート攻撃スキルのLv一時減少」を選んだ時<br />実行の際に減少させるLvの数値を設定します。" class="i-icon"></label>
+						「オート攻撃スキルのレベル減少」選択時　減少させるレベル <input id="ASL_Decrease" value="1" size="1" maxlength="1" class="text" type="text"></p>
+					<p><label title="「行動設定1」「行動設定2」で「指定位置に移動」を選んだ時<br />実行の際に移動する位置を主人からの相対値で設定します。<br />--X軸方向は左右方向です。（例：右に3セル=3、左に2セル＝-2）<br />--Y軸方向は上下方向です。（例：上に3セル=3、下に2セル＝-2）" class="i-icon"></label>
+						「指定位置に移動」選択時　移動させる位置：X軸方向 <input id="T_MoveDirection[1]" value="3" size="1" maxlength="2" class="text" type="text"> セル　Y軸方向 <input id="T_MoveDirection[2]" value="3" size="1" maxlength="2" class="text" type="text"> セル　</p>
+					<p><label title="「行動設定1」「行動設定2」で「サーチング」を選んだ時、実行の際に探すものを設定します。" class="i-icon"></label>
+						サーチングの対象<br />
+						<select id="TargetObjects[1]" class="text"><script type="text/javascript">SearchSelect();</script></select>
+						<select id="TargetObjects[2]" class="text"><script type="text/javascript">SearchSelect();</script></select>
+						<select id="TargetObjects[3]" class="text"><script type="text/javascript">SearchSelect();</script></select>
+						<select id="TargetObjects[4]" class="text"><script type="text/javascript">SearchSelect();</script></select><br />
+						<select id="TargetObjects[5]" class="text"><script type="text/javascript">SearchSelect();</script></select>
+						<select id="TargetObjects[6]" class="text"><script type="text/javascript">SearchSelect();</script></select>
+						<select id="TargetObjects[7]" class="text"><script type="text/javascript">SearchSelect();</script></select>
+						<select id="TargetObjects[8]" class="text"><script type="text/javascript">SearchSelect();</script></select>
+						
+					</p>
+					<h4>呼び出し時の状態に関する設定</h4>
+					<p><label title="呼び出し直後の状態を設定します。<br />デフォルトは待機状態ですが、休息状態からスタートすることもできます。" class="i-icon"></label>
+						ロード時の状態　　<select name="MyState" id="MyState"><option value="0" selected>待機状態</option><option value="12">休息状態</option></select></p>
+					<p><label title="ホムンクルス呼び出し直後に、指定ミリ秒間なにもしない時間を設定します。" class="i-icon"></label>
+						召喚後 <input id="SleepTime" value="1000" size="4" maxlength="4" class="text" type="text" /> ミリ秒間は一切行動しない</p>
+					<h4>戦闘時間の記録に関する設定</h4>
+					<p><label title="Mob別の設定や、平均戦闘時間データなどを記録する<br />ファイル名をホムンクルスごとに設定できます。<br />--半角英数字と「_」のみ使用可能です。<br />--変更した場合、一度ホムンクルスを呼び出しファイルを自動生成してください。" class="i-icon"></label>
+						Mob設定ファイルのファイル名（半角英数字のみ）<input id="MobFilename" value="Mob" size="20" class="text" type="text" /> .lua</p>
+					<p><label title="平均戦闘時間の記録を指定匹ごとに行うようになります。<br />--デフォルトでは10匹ごとに記録していきます。" class="i-icon"></label>
+						平均戦闘時間は敵を <input id="RecCount" value="10" size="2" maxlength="2" class="text" type="text" /> 匹撃破するごとに記録する</p>
+				</div>
+				<div id="s_common">
+					<h3>共通設定</h3>
+					<h4>各種登録操作に関する設定</h4>
+					<p>Alt+Shift+対象の居るセル右クリック
+					<select id="Com-ALT_SHIFT_CELL_CLICK" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_FRIEND" selected>友達登録
+					</select></p>
+					<p>Alt+Shift+主人の居るセル右クリック
+					<select id="Com-ALT_SHIFT_OWNER_CLICK" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_FRIEND_ALL" selected>一括友達登録
+						<option value="EDIT_FRIEND_DEL">友達リスト全削除
+					</select></p>
+					<p>Alt+Shift+自分の居るセル右クリック
+					<select id="Com-ALT_SHIFT_MY_CLICK" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_FRIEND_ALL">一括友達登録
+						<option value="EDIT_FRIEND_DEL" selected>友達リスト全削除
+					</select></p>
+					<p>Alt+対象ダブル右クリック
+					<select id="Com-ALT_D_CLICK" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_SKILL">スキル使用可否
+						<option value="EDIT_SKILL_LEVEL">スキルレベル指定
+						<option value="EDIT_IGNORE">無視設定
+						<option value="EDIT_RAID">先制攻撃設定
+						<option value="EDIT_CAST">詠唱妨害対象
+						<option value="EDIT_RANK" selected>優先度増加
+						<option value="EDIT_BONUS">手加減対象設定
+						<option value="EDIT_FULL_SKILL">フルスキル対象設定
+						<option value="EDIT_BOOST">特殊強化対象
+					</select></p>
+					<p>主人が座っている時，Alt+対象ダブル右クリック
+					<select id="Com-ALT_D_CLICK_SIT" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_SKILL">スキル使用可否
+						<option value="EDIT_SKILL_LEVEL">スキルレベル指定
+						<option value="EDIT_IGNORE">無視設定
+						<option value="EDIT_RAID">先制攻撃設定
+						<option value="EDIT_CAST">詠唱妨害対象
+						<option value="EDIT_RANK">優先度増加
+						<option value="EDIT_BONUS" selected>手加減対象設定
+						<option value="EDIT_FULL_SKILL">フルスキル対象設定
+						<option value="EDIT_BOOST">特殊強化対象
+					</select></p>
+					<p>Alt+Shift+対象右クリック
+					<select id="Com-ALT_SHIFT_CLICK" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_FRIEND">友達登録
+						<option value="EDIT_SKILL">スキル使用可否
+						<option value="EDIT_SKILL_LEVEL">スキルレベル指定
+						<option value="EDIT_IGNORE">無視設定
+						<option value="EDIT_RAID" selected>先制攻撃設定
+						<option value="EDIT_CAST">詠唱妨害対象
+						<option value="EDIT_RANK">優先度増加
+						<option value="EDIT_BONUS">手加減対象設定
+						<option value="EDIT_FULL_SKILL">フルスキル対象設定
+						<option value="EDIT_BOOST">特殊強化対象
+					</select></p>
+					<p>主人が座っている時，Alt+Shift+対象右クリック
+					<select id="Com-ALT_SHIFT_CLICK_SIT" class="text">
+						<option value="EDIT_NONE" selected>なし
+						<option value="EDIT_FRIEND">友達登録
+						<option value="EDIT_SKILL">スキル使用可否
+						<option value="EDIT_SKILL_LEVEL">スキルレベル指定
+						<option value="EDIT_IGNORE">無視設定
+						<option value="EDIT_RAID">先制攻撃設定
+						<option value="EDIT_CAST">詠唱妨害対象
+						<option value="EDIT_RANK">優先度増加
+						<option value="EDIT_BONUS">手加減対象設定
+						<option value="EDIT_FULL_SKILL">フルスキル対象設定
+						<option value="EDIT_BOOST">特殊強化対象
+					</select></p>
+					<p>休息状態時，Alt+Shift+対象右クリック
+					<select id="Com-ALT_T_SHIFT_CLICK" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_FRIEND">友達登録
+						<option value="EDIT_SKILL">スキル使用可否
+						<option value="EDIT_SKILL_LEVEL">スキルレベル指定
+						<option value="EDIT_IGNORE" selected>無視設定
+						<option value="EDIT_RAID">先制攻撃設定
+						<option value="EDIT_CAST">詠唱妨害対象
+						<option value="EDIT_RANK">優先度増加
+						<option value="EDIT_BONUS">手加減対象設定
+						<option value="EDIT_FULL_SKILL">フルスキル対象設定
+						<option value="EDIT_BOOST">特殊強化対象
+					</select></p>
+					<p>攻撃スキルLv1を使用時
+					<select id="Com-ATTACKSKILL_LV1" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_SKILL" selected>スキル使用可否
+						<option value="EDIT_SKILL_LEVEL">スキルレベル指定
+						<option value="EDIT_IGNORE">無視設定
+						<option value="EDIT_RAID">先制攻撃設定
+						<option value="EDIT_CAST">詠唱妨害対象
+						<option value="EDIT_RANK">優先度増加
+						<option value="EDIT_BONUS">手加減対象設定
+						<option value="EDIT_FULL_SKILL">フルスキル対象設定
+						<option value="EDIT_BOOST">特殊強化対象
+					</select></p>
+					<p>攻撃スキルLv2を使用時
+					<select id="Com-ATTACKSKILL_LV2" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_SKILL">スキル使用可否
+						<option value="EDIT_SKILL_LEVEL">スキルレベル指定
+						<option value="EDIT_IGNORE">無視設定
+						<option value="EDIT_RAID">先制攻撃設定
+						<option value="EDIT_CAST" selected>詠唱妨害対象
+						<option value="EDIT_RANK">優先度増加
+						<option value="EDIT_BONUS">手加減対象設定
+						<option value="EDIT_FULL_SKILL">フルスキル対象設定
+						<option value="EDIT_BOOST">特殊強化対象
+					</select></p>
+					<p>休息状態時，攻撃スキルを使用
+					<select id="Com-ALT_T_ATTACKSKILL" class="text">
+						<option value="EDIT_NONE">なし
+						<option value="EDIT_SKILL">スキル使用可否
+						<option value="EDIT_SKILL_LEVEL" selected>スキルレベル指定
+						<option value="EDIT_IGNORE">無視設定
+						<option value="EDIT_RAID">先制攻撃設定
+						<option value="EDIT_CAST">詠唱妨害対象
+						<option value="EDIT_RANK">優先度増加
+						<option value="EDIT_BONUS">手加減対象設定
+						<option value="EDIT_FULL_SKILL">フルスキル対象設定
+						<option value="EDIT_BOOST">特殊強化対象
+					</select></p>
+					
+					<h4>設定切り替え操作に関する設定</h4>
+					<p><label title="同族原種⇔亜種で設定内容を切り替えます。" class="i-icon"></label>
+						設定の切り替えを <font color=#ff0080>Alt+T</font> 2回連続押しで実行する<input type="radio" class="radio" id="Com-QuickTrigger-t" name="QuickTrigger" value="true" />　　しない<input type="radio" class="radio" id="Com-QuickTrigger-f" name="QuickTrigger" value="false" checked /></p>
+					<h4>メッセージモニタに関する設定</h4>
+					<p><label title="メッセージモニタを使用します。<br />使用設定時は、状態に応じてメッセージファイル(Message.lua)が出力されます。" class="i-icon"></label>
+						メッセージモニタを使用する<input type="radio" class="radio" id="Com-PrintMsg-t" name="PrintMsg" value="true" checked />　　しない<input type="radio" class="radio" id="Com-PrintMsg-f" name="PrintMsg" value="false" /></p>
+					<p><label title="メッセージモニタを使用時、AIからスキルが使用された場合にスキル名をモニタに表示します。<br />また、指定のフォーマットでファイルを用意すると、スキル使用時のメッセージを自由に変更できます。" class="i-icon"></label>
+						メッセージモニタにトークメッセージを表示する<input type="radio" class="radio" id="Com-PrintTalk-t" name="PrintTalk" value="true" checked />　　しない<input type="radio" class="radio" id="Com-PrintTalk-f" name="PrintTalk" value="false" /></p>
+				</div>
+				<div id="s_status">
+					<h3>ステータス計算</h3>
+					<h4>ホムンクルスのステータス記録</h4>
+					<p>
+						ホムンクルスのステータスウィンドウに表示されるパラメータを入力すると、STR、INT、AGIなどのステータス値を計算します。<br />
+						また、入力しておくとメッセージモニタのデータ領域で戦闘中のMobとのダメージ計算が出来ます。<br />
+						<span class="green">※この項目は、ホムンクルスのステータスウィンドウの値をそのまま入力してください。</span>
+					</p>
+					<p>
+						<label title="Lv,ATK,HITを入力すると与Dmg予想値が計算されます">Lv <input type="text" class="text" size="3" maxlength="3" id="LV" onchange="SettingParam('LV',this.value);StatusReflash();"></label> <span style="color:#0000ff; font-weight:bold;"><span id="s-hom-s-name"></span>のステータス</span><br />
+						<label title="Lv,ATK,HITを入力すると与Dmg予想値が計算されます">ATK 　<input type="text" class="text" size="4" maxlength="4" id="ATK" onchange="SettingParam('ATK',this.value);StatusReflash();"></label>　　
+						<label title="DEFを入力すると被Dmg予想値が計算されます">DEF <input type="text" class="text" size="3" maxlength="3" id="DEF" onchange="SettingParam('DEF',this.value);StatusReflash();"></label>　　
+						<label title="Lv,ATK,HITを入力すると<br />与Dmg予想値が計算されます<br />HITを入力すると命中率が<br />計算されます(最大95%)">HIT <input type="text" class="text" size="3" maxlength="3" id="HIT" onchange="SettingParam('HIT',this.value);StatusReflash();"></label>　　
+						<label title="CRIを入力するとLUKが計算されます。">CRI <input type="text" class="text" size="3" maxlength="3" id="CRI" onchange="SettingParam('CRI',this.value);StatusReflash();"></label><br />
+						<label title="MATKを入力すると[バニルミルト]与MDmg予想値,<br />[リーフ]MCh与Dmg予想値が計算されます">MATK <input type="text" class="text" size="4" maxlength="4" id="MATK" onchange="SettingParam('MATK',this.value);StatusReflash();"></label>　
+						<label title="MDEFを入力すると被MDmg予想値が計算されます">MDEF <input type="text" class="text" size="3" maxlength="3" id="MDEF" onchange="SettingParam('MDEF',this.value);StatusReflash();"></label>　
+						<label title="FLEEを入力すると回避率が<br />計算されます(最大95%)">FLEE <input type="text" class="text" size="3" maxlength="3" id="FLEE" onchange="SettingParam('FLEE',this.value);StatusReflash();"></label><br />
+					</p>
+					<p>
+						STR：<span id="STR">--</span><br />
+						AGI：<span id="AGI">--</span><br />
+						VIT：<span id="VIT">--</span><br />
+						INT：<span id="INT">--</span><br />
+						DEX：<span id="DEX">--</span><br />
+						LUK：<span id="LUK">--</span><br />
+						
+					</p>
+					<p class="red">※ステータス算出時の切り捨ての関係で、<br />一部のパラメーターは実際の値とは誤差がある可能性があります。</p>
+				</div>
+			</div>
+			<blockquote id="set-hom-icon" onmouseover="dispPaging(true);" onmouseout="dispPaging(false);"><span id="prev-hom" onclick="PagingHom(-1)"></span><span id="next-hom" onclick="PagingHom(1)"></span></blockquote>
+		</div>
+<!-- Set.luaエディタのHTMLここまで -->
+		
+<!-- Mob.luaエディタのHTML -->
+		<div id="mobdata">
+			<h2><label title="Mob別の対応や優先度、スキルレベル・スキル使用頻度などの設定を編集します。"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBOPiob2KhI/AAAAAAAAAGU/-EdUYACkJls/cog_g.png" width="16" height="16" class="mini-icon" /></label>こっこAI Mob設定エディタ</h2>
+			<span id="fileinput">　<img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ2_qB7kYI/AAAAAAAAAEY/b5yvheqkEb4/s128/loading.gif" width="18" height="18" class="mini-icon"><span style="color:#060;"> ネットワークに接続してデータベースをロードしています...</span></span>
+			<br />
+			<span id="area-selects"></span>
+
+			<div id="dataform">
+				<span id="dataarea">
+					
+				</span>
+			</div>
+		</div>
+<!-- Mob.luaエディタのHTMLここまで -->
+
+<!-- 友達リストエディタのHTML -->
+		<div id="friend">
+			<h2><label title="友達リストを編集します。名前を付けたり、停止・再登録できます。"><img src="http://lh6.ggpht.com/_8Hzx_QBHnQA/TBOPi9sHYHI/AAAAAAAAAGY/4mU-ihmJwcg/edit.png" width="16" height="16" class="mini-icon" /></label>こっこAI 友達リストエディタ</h2>
+			<div class="util_btn">
+				<span class="button" id="friend-save" onClick="SaveFriend();"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ3Ve6M4YI/AAAAAAAAAE8/uT4y7hNQrj8/s128/save.png" width="16" height="16" class="mini-icon" />友達リストを保存</span>
+				<span class="button" id="friend-reload" onClick="ReloadFriend();"><img src="http://lh6.ggpht.com/_8Hzx_QBHnQA/TBJ3U3_IJ0I/AAAAAAAAAE0/7sSkZJR2xEE/s128/refresh.png" width="16" height="16" class="mini-icon" />友達リストを再読込</span>
+			</div>
+			<div id="friend-alert"></div>
+			<div id="friend-main">
+				<div id="friend-list">
+					<h3>登録中の友達リスト</h3>
+					<ul id="now-friend">
+						<li class="f-title"><span class="friend-id" style="text-align:center;">ID</span><span class="friend-name">名前</span><span class="friend-job">職業</span></li>
+						<li class="no-friend"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ2_qB7kYI/AAAAAAAAAEY/b5yvheqkEb4/s128/loading.gif" width="18" height="18" class="mini-icon"><span style="color:#060;">ファイルを読み込み中です。</span></li>
+					</ul>
+				</div>
+				<div id="del-friend-list">
+					<h3>停止中の友達リスト</h3>
+					<ul id="deled-friend">
+						<li class="f-title"><span class="friend-id" style="text-align:center;">ID</span><span class="friend-name">名前</span><span class="friend-job">職業</span></li>
+						<li class="no-friend"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ2_qB7kYI/AAAAAAAAAEY/b5yvheqkEb4/s128/loading.gif" width="18" height="18" class="mini-icon"><span style="color:#060;">ファイル読み込み中です。</span></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+<!-- 友達リストエディタのHTMLここまで -->
+
+<!-- メインフォメーションのHTML -->
+		<div id="info">
+			<table>
+			<tr><td width="380">
+				<h2><label title="こっこAIに関する簡単なお知らせです。"><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TBrcIbkdtRI/AAAAAAAAAHc/LSUKIc93Ss0/broadcast.png" width="16" height="16" class="mini-icon" /></label>インフォメーション</h2>
+				<p><strong>info:</strong><span id="infomsg"></span></p>
+				<h2><label title="こっこAI、総合ツールのバージョン情報です。<br />更新がある場合通知します。"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ2wY-YKgI/AAAAAAAAAEE/ikROEnP9H-Q/s128/flag_blue.png" width="16" height="16" class="mini-icon" /></label>バージョン情報</h2>
+				<p>
+					<div id="ver-info">AI Ver.</div>
+					<div id="t-ver-info">総合ツール Ver.</div>
+					<div id="localdata-info">DB: </div>
+				</p>
+			</td><td width="420">
+				<div id="network">
+					<h2><label title="ローカルに保存されている設定ファイル、Mob設定ファイルを<br />オンライン上にバックアップすることができます。<br />バックアップしておくと、別PCで設定を引き継ぐ時などに便利です。<br />--アップロード：各設定ファイルをサーバーに保存します。<br />--ダウンロード：サーバー上の各設定ファイルの内容を、各設定エディタに反映します。"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ3c_I6xYI/AAAAAAAAAFM/cZivVcZ6cFc/s128/star.png" width="16" height="16" class="mini-icon" /></label>設定バックアップ<a href="http://cocco.privatemoon.jp/ai/bk/" style="padding-left:20px;font-weight:400;font-size:10pt;">※ご利用について</a></h2>
+					<p id="auth-form">
+						<label title="専用ページで登録したID、PASSを入力して<br />認証してください。"><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TBJ2_ZUhGZI/AAAAAAAAAEU/etphxTzqlro/s128/key.png" width="16" height="16" style="margin-right:5px;" /></label>
+						ID : <input type="text" class="text" style="text-align:left;" value="" size="12" id="user_id" />
+						PASS : <input type="password" class="text" style="text-align:left;" value="" size="12" id="user_pass" />
+						<span class="button" onclick="coccoAuth();" style="vertical-align:bottom;">認証</span>
+						<span id="auth-loading"></span>
+					</p>
+					<p style="color:#CCC;">
+						<label title="ホムンクルスの設定ファイル(Set.lua)のバックアップです。" class="bk-label">設定ファイル</label><span class="button" id="set-upload"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ3c3RKueI/AAAAAAAAAFQ/noI2i3Kvvug/s128/up.png" width="16" height="16" class="mini-icon" />アップロード</span> <span class="button" id="set-download"><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TBJ2wAra0nI/AAAAAAAAAEA/waxGYe_7Haw/s128/down.png" width="16" height="16" class="mini-icon" />ダウンロード</span>
+					</p>
+					<p style="color:#CCC;">
+						<label title="Mob設定ファイル(Mob.lua等)のバックアップです。<br />※利用する場合、まずMob設定エディタでファイルをロードしてください。" class="bk-label">Mob設定ファイル</label><span class="button" id="mob-upload"><img src="http://lh4.ggpht.com/_8Hzx_QBHnQA/TBJ3c3RKueI/AAAAAAAAAFQ/noI2i3Kvvug/s128/up.png" width="16" height="16" class="mini-icon" />アップロード</span> <span class="button" id="mob-download"><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TBJ2wAra0nI/AAAAAAAAAEA/waxGYe_7Haw/s128/down.png" width="16" height="16" class="mini-icon" />ダウンロード</span>
+					</p>
+				</div>
+			</td></tr>
+			</table>
+			<div id="my-site">
+				<img src="http://lh3.ggpht.com/_8Hzx_QBHnQA/TBJ3JbAzMUI/AAAAAAAAAEk/KC650R05wbg/s128/moon.png" width="16" height="16" class="mini-icon" />PrivateMoon | CoccoAI 2006-2014
+			</div>
+		</div>
+<!-- メインフォメーションのHTMLここまで -->
+	</div>
+<div id="copyright">&#169; Gravity Co., Ltd. & Lee MyoungJin(studio DTDS). All rights reserved.<br />
+&#169; GungHo Online Entertainment, Inc. All Rights Reserved.</div>
+<div id="ie6alert" onclick="this.style.display='none';">
+ご利用のInternetExploreのバージョンでは、<br />
+このアプリケーションを正常にご利用できない恐れがあります。<br /><br />
+<strong>InternetExplore 8</strong>以上にアップデートしてください。
+</div>
+<div id="alert-base"><div><img src="http://lh6.ggpht.com/_8Hzx_QBHnQA/TBJ3c9f8xSI/AAAAAAAAAFU/q15EyrwzpIg/warning.png" width="16" height="16" class="alert-icon" /><p id="alert">警告</p><span class="button" onclick="$('alert-base').style.display='none';"><img src="http://lh5.ggpht.com/_8Hzx_QBHnQA/TBrcIA2qdlI/AAAAAAAAAHY/Nl_m_E8FLRA/no.png" width="16" height="16" class="mini-icon" />閉じる</span></div></div>
+<!-- データロード -->
+<script type="text/javascript">
+	LoadDate();
+	settingForms();
+	HomSelect();
+</script>
+</body>
+</html>
